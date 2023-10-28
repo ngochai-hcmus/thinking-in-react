@@ -10,6 +10,7 @@ function LoadingSpinner() {
 }
 
 export default function App() {
+  const [history, setHistory] = useState('');
   const [imageUrls, setImageUrls] = useState([]);
   const [searchText, setSearchText] = useState('dog');
   const [finalSearch, setFinalSearch] = useState('');
@@ -20,13 +21,19 @@ export default function App() {
     if (!finalSearch)
       return;
 
-    setTimeout(async () => {
+    if (page === 1) {
       const response = await fetch(`https://api.unsplash.com/search/photos/?query=${searchText}&page=${page}&client_id=u4zn-nrPHRu4FdT_QDAJZvFAgCuqT6_xSCW2Cf6L7Bw`);
       const imagesResult = await response.json();
-      const newImageUrls = imagesResult.results.map(image => image.urls.small);
-      setImageUrls(prevImageUrls => [...prevImageUrls, ...newImageUrls]);
-      setIsFetching(false);
-    }, 2000);
+      setImageUrls(imagesResult.results.map(image => image.urls.small));
+    } else {
+      setTimeout(async () => {
+        const response = await fetch(`https://api.unsplash.com/search/photos/?query=${searchText}&page=${page}&client_id=u4zn-nrPHRu4FdT_QDAJZvFAgCuqT6_xSCW2Cf6L7Bw`);
+        const imagesResult = await response.json();
+        const newImageUrls = imagesResult.results.map(image => image.urls.small);
+        setImageUrls(prevImageUrls => [...prevImageUrls, ...newImageUrls]);
+        setIsFetching(false);
+      }, 2000);
+    }
   }
 
   useEffect(() => {
@@ -61,10 +68,10 @@ export default function App() {
       <div>
         <input value={searchText}
           onChange={(e) => setSearchText(e.target.value)}></input>
-        <button onClick={() => { setFinalSearch(searchText); }}>Search</button>
+        <button onClick={() => { setHistory(finalSearch); setFinalSearch(searchText); history != finalSearch? setPage(1) : null}}>Search</button>
       </div>
       <div id='gallery'>
-        {imageUrls.map(url => <img src={url} alt=''></img>)}
+        {imageUrls.map((url, index) => (<img key={index} src={url} alt="" />))}
       </div>
       {isFetching ? <LoadingSpinner /> : null}
     </div>
